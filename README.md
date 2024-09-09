@@ -1,1 +1,3 @@
 # DeepFakeDetection-model
+
+Our deepfake detection project focuses on developing a sophisticated system to identify manipulated videos, leveraging advanced AI models to distinguish between authentic and altered content. By analyzing video frames for subtle anomalies and inconsistencies, our solution aims to enhance media integrity and combat misinformation. The project integrates a user-friendly interface where users can upload videos for analysis, and employs a pre-trained model to evaluate the likelihood of deepfake manipulation, providing reliable results to support digital media verification efforts.
