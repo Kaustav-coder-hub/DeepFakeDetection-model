@@ -1,0 +1,29 @@
+# Virtual environment
+therealeye/Include/
+therealeye/Lib/
+therealeye/Scripts/
+therealeye/pyvenv.cfg
+
+# Compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Model files
+models/*.pkl
+
+# Uploaded files
+uploads/
+
+# Logs
+*.log
+
+# Cache and temporary files
+.DS_Store
+.ipynb_checkpoints
+
+# Data files
+true_modified_file.csv
+
+# Environment variables
+.env
