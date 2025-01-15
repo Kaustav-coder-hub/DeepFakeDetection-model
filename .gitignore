@@ -3,6 +3,7 @@ therealeye/Include/
 therealeye/Lib/
 therealeye/Scripts/
 therealeye/pyvenv.cfg
+test.py
 
 # Compiled files
 __pycache__/

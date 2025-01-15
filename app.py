@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for
 from PIL import Image
 import numpy as np
-import cv2
+import cv2 as cv
 import os
 import torch
 from torchvision import transforms
@@ -37,7 +37,7 @@ def preprocess_img(image_path):
 
 # Preprocess video and extract every 20th frame
 def preprocess_video(video_path):
-    cap = cv2.VideoCapture(video_path)
+    cap = cv.VideoCapture(video_path)
     frames = []
     frame_count = 0
 
@@ -48,7 +48,7 @@ def preprocess_video(video_path):
 
         frame_count += 1
         if frame_count % 20 == 0:  # Extract every 20th frame
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+            frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)  # Convert BGR to RGB
             frame = Image.fromarray(frame)  # Convert to PIL Image
             frame = transform(frame)  # Apply transformations
             frames.append(frame.numpy())  # Store as numpy array
