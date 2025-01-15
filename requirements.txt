@@ -6,6 +6,7 @@ charset-normalizer==3.4.1
 click==8.1.8
 colorama==0.4.6
 decorator==5.1.1
+efficientnet-pytorch==0.7.1
 filelock==3.16.1
 Flask==3.1.0
 flatbuffers==24.12.23

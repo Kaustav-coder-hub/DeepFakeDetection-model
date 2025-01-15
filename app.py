@@ -1,63 +1,27 @@
-from flask import Flask, request, render_template, redirect, url_for
-from PIL import Image
-import numpy as np
-import cv2 as cv
+from flask import Flask, render_template, request, redirect, url_for
 import os
 import torch
 from torchvision import transforms
+from PIL import Image
+from efficientnet_pytorch import EfficientNet
+import cv2
 
-# Initialize Flask app
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads/'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+model_path = 'models/Efficientnet_model.pth'
 
-# Ensure upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Load the trained EfficientNet model
+model = EfficientNet.from_name('efficientnet-b0')
+model._fc = torch.nn.Linear(model._fc.in_features, 2)  # Binary classification
+model.load_state_dict(torch.load(model_path, map_location='cpu'))
+model.eval()
 
-# Load the PyTorch model
-model = torch.load('./models/Deep-Fake_Detection_FINAL_ACC-0.9017_Efficientnet_model.pth')
-model.eval()  # Set the model to evaluation mode
-
-
-# Define transformations (Data Augmentation and Normalization)
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # Resize to 224x224
-    transforms.RandomHorizontalFlip(),  # Random horizontal flip
-    transforms.RandomRotation(20),  # Random rotation between -20 and 20 degrees
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),  # Random color jitter
-    transforms.ToTensor(),  # Convert image to tensor
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # ImageNet normalization
+# Preprocessing transformation
+preprocess = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
-# Preprocess single image
-def preprocess_img(image_path):
-    img = Image.open(image_path).convert("RGB")  # Ensure RGB mode
-    img = transform(img)  # Apply transformations
-    return img.unsqueeze(0)  # Add batch dimension
-
-
-# Preprocess video and extract every 20th frame
-def preprocess_video(video_path):
-    cap = cv.VideoCapture(video_path)
-    frames = []
-    frame_count = 0
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        frame_count += 1
-        if frame_count % 20 == 0:  # Extract every 20th frame
-            frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)  # Convert BGR to RGB
-            frame = Image.fromarray(frame)  # Convert to PIL Image
-            frame = transform(frame)  # Apply transformations
-            frames.append(frame.numpy())  # Store as numpy array
-
-    cap.release()
-    if frames:
-        return torch.tensor(np.stack(frames))  # Stack frames and convert to tensor
-    return torch.empty(0)  # Return empty tensor if no frames
-
 
 @app.route('/')
 def index():
@@ -67,33 +31,54 @@ def index():
 def upload():
     if 'file' not in request.files:
         return redirect(url_for('index'))
-    
     file = request.files['file']
+    if file.filename == '':
+        return redirect(url_for('index'))
+    
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
-
-    # Validate file type
-    if not file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.mp4', '.avi', '.mov')):
-        return render_template('result.html', result="Unsupported file type", filename=file.filename)
-
-    try:
-        if file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
-            data = preprocess_img(filepath)
-            with torch.no_grad():
-                prediction = model.predict(data)[0][0]
-        else:
-            frames = preprocess_video(filepath)
-            if frames.size == 0:
-                return render_template('result.html', result="No valid frames extracted", filename=file.filename)
-            with torch.no_grad():
-                prediction = model.predict(frames).mean()
-        
-        result = "Fake" if prediction > 0.5 else "Real"
-    except Exception as e:
-        return render_template('result.html', result=f"Error processing file: {str(e)}", filename=file.filename)
-
+    
+    if file.filename.endswith('.mp4'):
+        result = analyze_video(filepath)
+    else:
+        result = analyze_image(filepath)
+    
     return render_template('result.html', result=result, filename=file.filename)
 
+def analyze_image(image_path):
+    image = Image.open(image_path).convert('RGB')
+    input_tensor = preprocess(image).unsqueeze(0)
+    output = model(input_tensor)
+    prediction = torch.argmax(output, 1).item()
+    return 'Fake' if prediction == 1 else 'Real'
+
+def analyze_video(video_path):
+    cap = cv2.VideoCapture(video_path)
+    frame_count = 0
+    fake_count = 0
+    total_frames = 0
+    
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame_count += 1
+        
+        if frame_count % 20 == 0:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(frame)
+            input_tensor = preprocess(image).unsqueeze(0)
+            output = model(input_tensor)
+            prediction = torch.argmax(output, 1).item()
+            if prediction == 1:
+                fake_count += 1
+            total_frames += 1
+    
+    cap.release()
+    if fake_count / total_frames > 0.5:
+        return 'Fake'
+    else:
+        return 'Real'
 
 if __name__ == '__main__':
     app.run(debug=True)
