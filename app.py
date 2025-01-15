@@ -8,7 +8,7 @@ import cv2
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-model_path = 'models/Efficientnet_model.pth'
+model_path = 'models\Deep-Fake_Detection_FINAL_ACC-0.9017_Efficientnet_model.pth'
 
 # Load the trained EfficientNet model
 model = EfficientNet.from_name('efficientnet-b0')
@@ -35,13 +35,34 @@ def upload():
     if file.filename == '':
         return redirect(url_for('index'))
     
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    # Ensure the 'uploads' directory exists
+    upload_folder = 'uploads'
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    
+    # Supported video file extensions
+    video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.flv']
+    
+    # Supported image file extensions
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff']
+    
+    filepath = os.path.join(upload_folder, file.filename)
     file.save(filepath)
     
-    if file.filename.endswith('.mp4'):
+    # Get the file extension
+    file_extension = os.path.splitext(filepath)[1].lower()
+    
+    # Check if the file is a video
+    if file_extension in video_extensions:
         result = analyze_video(filepath)
-    else:
+    
+    # Check if the file is an image
+    elif file_extension in image_extensions:
         result = analyze_image(filepath)
+    
+    # If the file is neither a video nor an image
+    else:
+        result = f"Error: Unsupported file type '{file_extension}'. Please upload a video or image."
     
     return render_template('result.html', result=result, filename=file.filename)
 
