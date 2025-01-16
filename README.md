@@ -65,6 +65,8 @@ pip install -r requirements.txt
 
 ```bash
 git clone https://github.com/Kaustav-coder-hub/DeepFakeDetection-model
+// This command navigates to the repository directory. 
+// Note: The name of the repository directory may differ on your PC.
 cd TheRealEye
 ```
 
@@ -72,7 +74,7 @@ cd TheRealEye
 
 ```bash
 python -m venv therealeye
-source therealeye/Scripts/activate  # On Windows
+therealeye/Scripts/activate  # On Windows
 source therealeye/bin/activate      # On macOS/Linux
 ```
 
@@ -133,5 +135,5 @@ Feel free to fork this repository, submit pull requests, or report issues. Contr
 
 ## Contact
 
-For questions or support, contact [[therealeye4@gmail.com](mailto\:your-email@example.com)].
+For questions or support, contact [[therealeye4@gmail.com](mailto\:therealeye4@gmail.com)].
 
