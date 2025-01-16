@@ -65,8 +65,8 @@ pip install -r requirements.txt
 
 ```bash
 git clone https://github.com/Kaustav-coder-hub/DeepFakeDetection-model
-// This command navigates to the repository directory. 
-// Note: The name of the repository directory may differ on your PC.
+# This command navigates to the repository directory. 
+# Note: The name of the repository directory may differ on your PC.
 cd TheRealEye
 ```
 
