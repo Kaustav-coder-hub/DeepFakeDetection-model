@@ -12,7 +12,7 @@ __pycache__/
 models/*.pkl
 
 # Uploaded files
-uploads/
+uploads
 
 # Logs
 *.log
