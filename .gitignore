@@ -1,9 +1,6 @@
 # Virtual environment
-therealeye/
-therealeye/Include/
-therealeye/Lib/
-therealeye/Scripts/
-therealeye/pyvenv.cfg
+therealeye-env
+
 test.py
 
 # Compiled files
